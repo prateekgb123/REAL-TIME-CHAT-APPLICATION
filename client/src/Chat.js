@@ -12,6 +12,7 @@ function Chat() {
 
   const bottomRef = useRef(null);
 
+  // ================= SEND =================
   const sendMessage = () => {
     if (message.trim() !== "") {
       const messageData = {
@@ -25,6 +26,12 @@ function Chat() {
     }
   };
 
+  // ================= DELETE =================
+  const deleteMessage = (id) => {
+    socket.emit("delete_message", id);
+  };
+
+  // ================= SOCKET EVENTS =================
   useEffect(() => {
     const handleReceive = (data) => {
       setMessageList((list) => [...list, data]);
@@ -43,45 +50,61 @@ function Chat() {
     };
   }, []);
 
-  // auto scroll
+  // ================= AUTO SCROLL =================
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messageList]);
 
- if (!roomJoined) {
-  return (
-    <div className="joinWrapper">
-      <div className="joinCard">
-        <h2>⚡ Real Time Chat</h2>
+  // ================= JOIN SCREEN =================
+  if (!roomJoined) {
+    return (
+      <div className="joinWrapper">
+        <div className="joinCard">
+          <h2>⚡ Real Time Chat</h2>
 
-        <input
-          placeholder="Enter your name"
-          onChange={(e) => setUsername(e.target.value)}
-        />
+          <input
+            placeholder="Enter your name"
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-        <button onClick={() => setRoomJoined(true)}>Join Chat</button>
+          <button
+            disabled={!username.trim()}
+            onClick={() => setRoomJoined(true)}
+          >
+            Join Chat
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-
+  // ================= CHAT SCREEN =================
   return (
     <div className="chatContainer">
       <div className="chatHeader">⚡ Real Time Chat</div>
 
       <div className="chatBody">
-        {messageList.map((msg, index) => (
+        {messageList.map((msg) => (
           <div
-            key={index}
-            className={`message ${
-              msg.author === username ? "own" : "other"
-            }`}
+            key={msg._id}
+            className={`message ${msg.author === username ? "own" : "other"}`}
           >
             <div className="meta">
               {msg.author} • {msg.time}
             </div>
-            <div className="text">{msg.message}</div>
+            <div className="textRow">
+            <span>{msg.message}</span>
+
+            {msg.author === username && (
+                <span
+                className="deleteBtn"
+                onClick={() => deleteMessage(msg._id)}
+                >
+                🗑
+                </span>
+            )}
+            </div>
+
           </div>
         ))}
         <div ref={bottomRef}></div>

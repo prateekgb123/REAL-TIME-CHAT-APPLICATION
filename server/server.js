@@ -38,6 +38,15 @@ io.on("connection", async (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
+  // delete message
+socket.on("delete_message", async (id) => {
+  await Message.findByIdAndDelete(id);
+
+  // send updated list
+  const messages = await Message.find().sort({ _id: 1 });
+  io.emit("chat_history", messages);
+});
+
 });
 
 server.listen(process.env.PORT, () => {
