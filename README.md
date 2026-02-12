@@ -107,11 +107,9 @@ http://localhost:3000
 
 ## 🧪 Testing Real-Time
 
-Open two browser windows.
-
-Join with different usernames.
-
-Send messages → see instant updates ⚡
+->Open two browser windows.
+->Join with different usernames.
+->Send messages → see instant updates ⚡
 
 ---
 
@@ -167,6 +165,4 @@ Server acts as single source of truth.
 
 ## 👨‍💻 Author
 
-**Prateek**
-
-If you like this project, feel free to ⭐ the repository.
+Prateek
