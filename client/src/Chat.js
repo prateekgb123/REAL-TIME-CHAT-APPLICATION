@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
+import "./Chat.css";
 
-// create connection once
 const socket = io("http://localhost:5000");
 
 function Chat() {
@@ -10,12 +10,13 @@ function Chat() {
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
 
-  // send message to server
+  const bottomRef = useRef(null);
+
   const sendMessage = () => {
     if (message.trim() !== "") {
       const messageData = {
         author: username,
-        message: message,
+        message,
         time: new Date().toLocaleTimeString(),
       };
 
@@ -24,61 +25,72 @@ function Chat() {
     }
   };
 
-  // receive message from server
-useEffect(() => {
-  const handleReceive = (data) => {
-    setMessageList((list) => [...list, data]);
-  };
+  useEffect(() => {
+    const handleReceive = (data) => {
+      setMessageList((list) => [...list, data]);
+    };
 
-  const handleHistory = (history) => {
-    setMessageList(history);
-  };
+    const handleHistory = (history) => {
+      setMessageList(history);
+    };
 
-  socket.on("receive_message", handleReceive);
-  socket.on("chat_history", handleHistory);
+    socket.on("receive_message", handleReceive);
+    socket.on("chat_history", handleHistory);
 
-  return () => {
-    socket.off("receive_message", handleReceive);
-    socket.off("chat_history", handleHistory);
-  };
-}, []);
+    return () => {
+      socket.off("receive_message", handleReceive);
+      socket.off("chat_history", handleHistory);
+    };
+  }, []);
 
+  // auto scroll
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messageList]);
 
-  // join screen
-  if (!roomJoined) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
+ if (!roomJoined) {
+  return (
+    <div className="joinWrapper">
+      <div className="joinCard">
+        <h2>⚡ Real Time Chat</h2>
+
         <input
           placeholder="Enter your name"
           onChange={(e) => setUsername(e.target.value)}
         />
+
         <button onClick={() => setRoomJoined(true)}>Join Chat</button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  // chat screen
+
   return (
-    <div style={{ width: "400px", margin: "auto" }}>
-      <div
-        style={{
-          border: "1px solid gray",
-          height: "300px",
-          overflowY: "scroll",
-          padding: "10px",
-        }}
-      >
+    <div className="chatContainer">
+      <div className="chatHeader">⚡ Real Time Chat</div>
+
+      <div className="chatBody">
         {messageList.map((msg, index) => (
-          <div key={index}>
-            <b>{msg.author}</b> [{msg.time}]: {msg.message}
+          <div
+            key={index}
+            className={`message ${
+              msg.author === username ? "own" : "other"
+            }`}
+          >
+            <div className="meta">
+              {msg.author} • {msg.time}
+            </div>
+            <div className="text">{msg.message}</div>
           </div>
         ))}
+        <div ref={bottomRef}></div>
       </div>
 
-      <div style={{ marginTop: "10px" }}>
+      <div className="chatFooter">
         <input
           value={message}
-          placeholder="Message..."
+          placeholder="Type a message..."
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
